@@ -1,5 +1,4 @@
 const router = require('express').Router();
-const Task = require('./task.model');
 const tasksService = require('./task.service');
 
 router
@@ -11,7 +10,7 @@ router
     const task = await tasksService.createTaskOnBoard(req.boardId, req.body);
 
     return task
-      ? res.json(Task.toResponse(task))
+      ? res.json(task)
       : next({ status: 400, message: 'Bad request' });
   });
 
@@ -26,7 +25,7 @@ router
       return next({ status: 404, message: 'Task not found' });
     }
 
-    res.json(Task.toResponse(task));
+    res.json(task);
   })
   .put(async (req, res, next) => {
     const task = await tasksService.updateTaskByBoardIdAndTaskId(

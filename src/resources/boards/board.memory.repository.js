@@ -1,4 +1,5 @@
 const Board = require('./board.model');
+const tasksService = require('../tasks/task.service');
 
 const boards = [];
 
@@ -17,13 +18,22 @@ const createBoard = async board => {
 };
 
 const deleteBoardById = async id => {
-  // TODO should unassign board's tasks upon deletion
   const board = await getBoardById(id);
   if (!board) {
     return false;
   }
   const index = boards.indexOf(board);
   boards.splice(index, 1);
+
+  // When somebody DELETE Board, all its Tasks should be deleted as well.
+  (async () => {
+    const tasks = await tasksService.getTasksByBoardId(id);
+    tasks.forEach(task => {
+      (async () => {
+        await tasksService.deleteTaskByBoardIdAndTaskId(id, task.id);
+      })();
+    });
+  })();
 
   return true;
 };
@@ -54,5 +64,5 @@ module.exports = {
   createBoard,
   getBoardById,
   updateBoardById,
-  deleteBoardById,
+  deleteBoardById
 };

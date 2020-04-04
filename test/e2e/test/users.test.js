@@ -97,6 +97,25 @@ describe('Users suite', () => {
     });
   });
 
+  describe('POST', () => {
+    it('should create user successfully', async () => {
+      await request
+        .post(routes.users.create)
+        .set('Accept', 'application/json')
+        .send(TEST_USER_DATA)
+        .expect(200)
+        .expect('Content-Type', /json/)
+        .then(res => {
+          expect(res.body.id).to.be.a('string');
+          expect(res.body).to.not.have.property('password');
+          jestExpect(res.body).toMatchObject({
+            login: TEST_USER_DATA.login,
+            name: TEST_USER_DATA.name
+          });
+        });
+    });
+  });
+
   describe('PUT', () => {
     it('should update user successfully', async () => {
       // Setup

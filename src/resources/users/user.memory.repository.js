@@ -2,7 +2,14 @@ const User = require('./user.model');
 const boardsService = require('../boards/board.service');
 const tasksService = require('../tasks/task.service');
 
-const users = [];
+const users = [
+  {
+    id: '1',
+    name: 'admin',
+    login: 'admin_user',
+    password: 'P@55w0rd'
+  }
+];
 
 const getAll = async () => {
   return users;
@@ -33,22 +40,20 @@ const deleteUserById = async id => {
       const tasks = await tasksService.getTasksByBoardId(board.id);
       tasks.forEach(task => {
         if (task.userId === id) {
-          const updateTask = {
-            ...task,
-            userId: null
-          };
-
           (async () => {
-            console.log(updateTask);
-
-            return await tasksService.updateTaskByBoardIdAndTaskId(
-              board.id,
-              task.id,
-              updateTask
-            );
+            await tasksService.updateTaskByBoardIdAndTaskId(board.id, task.id, {
+              ...task,
+              userId: null
+            });
           })();
         }
       });
+    })();
+  });
+
+  boards.forEach(board => {
+    (async () => {
+      const tasks = await tasksService.getTasksByBoardId(board.id);
     })();
   });
 
