@@ -1,42 +1,72 @@
 const router = require('express').Router();
 const boardsService = require('./board.service');
+const { ErrorHandler } = require('../../common/errorHandler');
 
 router
   .route('/')
-  .get(async (req, res) => {
-    res.json(await boardsService.getAll());
+  .get(async (req, res, next) => {
+    try {
+      return res.json(await boardsService.getAll());
+    } catch (error) {
+      next(error);
+    }
   })
   .post(async (req, res, next) => {
-    const board = await boardsService.createBoard(req.body);
+    try {
+      const board = await boardsService.createBoard(req.body);
 
-    return board
-      ? res.json(board)
-      : next({ status: 400, message: 'Bad request' });
+      if (!board) {
+        throw new ErrorHandler(400, 'Bad request');
+      }
+
+      return res.json(board);
+    } catch (error) {
+      next(error);
+    }
   });
 
 router
   .route('/:id')
   .get(async (req, res, next) => {
-    const board = await boardsService.getBoardById(req.params.id);
-    if (!board) {
-      return next({ status: 404, message: 'Board not found' });
-    }
+    try {
+      const board = await boardsService.getBoardById(req.params.id);
+      if (!board) {
+        throw new ErrorHandler(404, 'Board not found');
+      }
 
-    res.json(board);
+      return res.json(board);
+    } catch (error) {
+      next(error);
+    }
   })
   .put(async (req, res, next) => {
-    const board = await boardsService.updateBoardById(req.params.id, req.body);
+    try {
+      const board = await boardsService.updateBoardById(
+        req.params.id,
+        req.body
+      );
 
-    return board
-      ? res.json(board)
-      : next({ status: 400, message: 'Bad request' });
+      if (!board) {
+        throw new ErrorHandler(400, 'Bad request');
+      }
+
+      return res.json(board);
+    } catch (error) {
+      next(error);
+    }
   })
   .delete(async (req, res, next) => {
-    const isSuccess = await boardsService.deleteBoardById(req.params.id);
+    try {
+      const isSuccess = await boardsService.deleteBoardById(req.params.id);
 
-    return isSuccess
-      ? res.status(204).json({ message: 'The Board has been deleted' })
-      : next({ status: 404, message: 'Board not found' });
+      if (!isSuccess) {
+        throw new ErrorHandler(404, 'Board not found');
+      }
+
+      return res.status(204).json({ message: 'The Board has been deleted' });
+    } catch (error) {
+      next(error);
+    }
   });
 
 module.exports = router;

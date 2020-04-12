@@ -5,6 +5,18 @@ const YAML = require('yamljs');
 const userRouter = require('./resources/users/user.router');
 const boardRouter = require('./resources/boards/board.router');
 const taskRouter = require('./resources/tasks/task.router');
+const { handleError } = require('./common/errorHandler');
+const { logReq } = require('./common/logger');
+
+// Exceptions catcher
+process.on('uncaughtException', error => {
+  handleError(error);
+});
+
+// Unhandled promise rejection
+process.on('unhandledRejection', error => {
+  handleError(error);
+});
 
 const app = express();
 const swaggerDocument = YAML.load(path.join(__dirname, '../doc/api.yaml'));
@@ -21,7 +33,13 @@ app.use('/', (req, res, next) => {
   }
   next();
 });
+// logger middleware
+app.use((req, res, next) => {
+  logReq(req);
+  next();
+});
 
+// routers
 app.use('/users', userRouter);
 app.use('/boards', boardRouter);
 app.use(
@@ -34,14 +52,9 @@ app.use(
 );
 
 // error handler middleware
-// eslint-disable-next-line no-unused-vars
 app.use((err, req, res, next) => {
-  res.status(err.status || 500).json({
-    error: {
-      status: err.status || 500,
-      message: err.message || 'Internal Server Error'
-    }
-  });
+  handleError(err, res);
+  next();
 });
 
 module.exports = app;

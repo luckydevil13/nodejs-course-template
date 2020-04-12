@@ -51,12 +51,6 @@ const deleteUserById = async id => {
     })();
   });
 
-  boards.forEach(board => {
-    (async () => {
-      const tasks = await tasksService.getTasksByBoardId(board.id);
-    })();
-  });
-
   return true;
 };
 

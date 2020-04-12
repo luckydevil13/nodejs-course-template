@@ -1,52 +1,80 @@
 const router = require('express').Router();
 const tasksService = require('./task.service');
+const { ErrorHandler } = require('../../common/errorHandler');
 
 router
   .route('/')
-  .get(async (req, res) => {
-    res.json(await tasksService.getTasksByBoardId(req.boardId));
+  .get(async (req, res, next) => {
+    try {
+      return res.json(await tasksService.getTasksByBoardId(req.boardId));
+    } catch (error) {
+      next(error);
+    }
   })
   .post(async (req, res, next) => {
-    const task = await tasksService.createTaskOnBoard(req.boardId, req.body);
+    try {
+      const task = await tasksService.createTaskOnBoard(req.boardId, req.body);
 
-    return task
-      ? res.json(task)
-      : next({ status: 400, message: 'Bad request' });
+      if (!task) {
+        throw new ErrorHandler(400, 'Bad request');
+      }
+
+      return res.json(task);
+    } catch (error) {
+      next(error);
+    }
   });
 
 router
   .route('/:id')
   .get(async (req, res, next) => {
-    const task = await tasksService.getTaskByBoardIdAndTaskId(
-      req.boardId,
-      req.params.id
-    );
-    if (!task) {
-      return next({ status: 404, message: 'Task not found' });
-    }
+    try {
+      const task = await tasksService.getTaskByBoardIdAndTaskId(
+        req.boardId,
+        req.params.id
+      );
 
-    res.json(task);
+      if (!task) {
+        throw new ErrorHandler(404, 'Task not found');
+      }
+
+      return res.json(task);
+    } catch (error) {
+      next(error);
+    }
   })
   .put(async (req, res, next) => {
-    const task = await tasksService.updateTaskByBoardIdAndTaskId(
-      req.boardId,
-      req.params.id,
-      req.body
-    );
+    try {
+      const task = await tasksService.updateTaskByBoardIdAndTaskId(
+        req.boardId,
+        req.params.id,
+        req.body
+      );
 
-    return task
-      ? res.json(task)
-      : next({ status: 404, message: 'Task not found' });
+      if (!task) {
+        throw new ErrorHandler(404, 'Task not found');
+      }
+
+      return res.json(task);
+    } catch (error) {
+      next(error);
+    }
   })
   .delete(async (req, res, next) => {
-    const isSuccess = await tasksService.deleteTaskByBoardIdAndTaskId(
-      req.boardId,
-      req.params.id
-    );
+    try {
+      const isSuccess = await tasksService.deleteTaskByBoardIdAndTaskId(
+        req.boardId,
+        req.params.id
+      );
 
-    return isSuccess
-      ? res.status(204).json({ message: 'The Task has been deleted' })
-      : next({ status: 404, message: 'Task not found' });
+      if (!isSuccess) {
+        throw new ErrorHandler(404, 'Task not found');
+      }
+
+      return res.status(204).json({ message: 'The Task has been deleted' });
+    } catch (error) {
+      next(error);
+    }
   });
 
 module.exports = router;

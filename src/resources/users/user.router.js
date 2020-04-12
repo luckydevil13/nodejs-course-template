@@ -1,45 +1,71 @@
 const router = require('express').Router();
 const User = require('./user.model');
 const usersService = require('./user.service');
+const { ErrorHandler } = require('../../common/errorHandler');
 
 router
   .route('/')
-  .get(async (req, res) => {
-    const users = await usersService.getAll();
-    // map user fields to exclude secret fields like "password"
-    res.json(users.map(User.toResponse));
+  .get(async (req, res, next) => {
+    try {
+      const users = await usersService.getAll();
+      // map user fields to exclude secret fields like "password"
+      return res.json(users.map(User.toResponse));
+    } catch (error) {
+      next(error);
+    }
   })
   .post(async (req, res, next) => {
-    const user = await usersService.createUser(req.body);
+    try {
+      const user = await usersService.createUser(req.body);
 
-    return user
-      ? res.json(User.toResponse(user))
-      : next({ status: 400, message: 'Bad request' });
+      if (!user) {
+        throw new ErrorHandler(400, 'Bad request');
+      }
+
+      return res.json(User.toResponse(user));
+    } catch (error) {
+      next(error);
+    }
   });
 
 router
   .route('/:id')
   .get(async (req, res, next) => {
-    const user = await usersService.getUserById(req.params.id);
-    if (!user) {
-      return next({ status: 404, message: 'User not found' });
-    }
+    try {
+      const user = await usersService.getUserById(req.params.id);
+      if (!user) {
+        throw new ErrorHandler(404, 'User not found');
+      }
 
-    res.json(User.toResponse(user));
+      return res.json(User.toResponse(user));
+    } catch (error) {
+      next(error);
+    }
   })
   .put(async (req, res, next) => {
-    const user = await usersService.updateUserById(req.params.id, req.body);
+    try {
+      const user = await usersService.updateUserById(req.params.id, req.body);
 
-    return user
-      ? res.json(user)
-      : next({ status: 400, message: 'Bad request' });
+      if (!user) {
+        throw new ErrorHandler(400, 'Bad request');
+      }
+
+      return res.json(user);
+    } catch (error) {
+      next(error);
+    }
   })
   .delete(async (req, res, next) => {
-    const isSuccess = await usersService.deleteUserById(req.params.id);
+    try {
+      const isSuccess = await usersService.deleteUserById(req.params.id);
+      if (!isSuccess) {
+        throw new ErrorHandler(404, 'User not found');
+      }
 
-    return isSuccess
-      ? res.status(204).json({ message: 'The user has been deleted' })
-      : next({ status: 404, message: 'User not found' });
+      return res.status(204).json({ message: 'The user has been deleted' });
+    } catch (error) {
+      next(error);
+    }
   });
 
 module.exports = router;
