@@ -34,7 +34,7 @@ router
         req.params.id
       );
 
-      if (!task) {
+      if (!task || task.errors) {
         throw new ErrorHandler(404, 'Task not found');
       }
 

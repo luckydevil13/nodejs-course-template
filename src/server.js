@@ -1,6 +1,10 @@
 const { PORT } = require('./common/config');
+const { connectDB } = require('./db/db.client');
+
 const app = require('./app');
 
-app.listen(PORT, () =>
-  console.log(`App is running on http://localhost:${PORT}`)
-);
+connectDB(() => {
+  app.listen(PORT, () =>
+    console.log(`App is running on http://localhost:${PORT}`)
+  );
+});
