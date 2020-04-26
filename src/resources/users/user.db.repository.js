@@ -1,4 +1,6 @@
 const User = require('./user.db.model');
+const bcrypt = require('bcrypt');
+const SALT_COUNT = 3;
 
 const boardsService = require('../boards/board.service');
 const tasksService = require('../tasks/task.service');
@@ -7,12 +9,33 @@ const getAll = async () => {
   return User.find({});
 };
 
+const getUserByLogin = async login => {
+  return User.findOne({ login });
+};
+
 const getUserById = async id => {
   return User.findOne({ _id: id });
 };
 
 const createUser = async user => {
-  return User.create(user);
+  return bcrypt.hash(user.password, SALT_COUNT).then(hash => {
+    return User.create({
+      ...user,
+      password: hash
+    });
+  });
+};
+
+const updateUserById = async (id, data) => {
+  return bcrypt.hash(data.password, SALT_COUNT).then(hash => {
+    return User.update(
+      { _id: id },
+      {
+        ...data,
+        password: hash
+      }
+    );
+  });
 };
 
 const deleteUserById = async id => {
@@ -37,15 +60,11 @@ const deleteUserById = async id => {
   return true;
 };
 
-const updateUserById = async (id, data) => {
-  const res = await User.update({ _id: id }, data);
-  return res.ok;
-};
-
 module.exports = {
   getAll,
   createUser,
   getUserById,
   updateUserById,
-  deleteUserById
+  deleteUserById,
+  getUserByLogin
 };
